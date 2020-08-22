@@ -1,4 +1,4 @@
-from core.constants import BATCH_SIZE
+from core.constants import IMAGE_SIZE
 import tensorflow as tf
 from numpy.random import random
 

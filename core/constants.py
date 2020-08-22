@@ -6,10 +6,11 @@ from shutil import rmtree
 DEVICE_TYPE = 'GPU'
 
 # предел используемой памяти девайса в мегабайтах
-MEMORY_LIMIT = 1400
+MEMORY_LIMIT = 512
 
 # Размер пакета, размер входной картинки
-BATCH_SIZE = 3
+INFER_BATCH_SIZE = 1
+T_BATCH_SIZE = 3
 IMAGE_SIZE = 360
 CHANNELS = 3
 EPOCHS = 1000

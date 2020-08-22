@@ -1,5 +1,5 @@
 import tensorflow as tf
-from core.constants import BATCH_SIZE
+from core.constants import T_BATCH_SIZE, INFER_BATCH_SIZE
 
 
 class ProjectionBlock(tf.keras.layers.Layer):
@@ -25,7 +25,10 @@ class Block(tf.keras.layers.Layer):
 
 
 class ResNet(tf.keras.Model):
-    def __init__(self):
+    def __init__(self, inference_mode=False):
+        self.batch_size = T_BATCH_SIZE
+        if inference_mode:
+            self.batch_size = INFER_BATCH_SIZE
         super(ResNet, self).__init__()
         # naming rule: self.BlockName_OutSize_Index
         self.block_360_1 = Block(3)
@@ -101,4 +104,4 @@ class ResNet(tf.keras.Model):
         x = self.block_3_2(x)
         x = self.block_3_3(x)
 
-        return self.out(tf.reshape(x, (BATCH_SIZE, 504)))
+        return self.out(tf.reshape(x, (self.batch_size, 504)))

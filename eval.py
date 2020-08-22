@@ -1,5 +1,5 @@
 from core.constants import OFF_IMG_TEST_PATH, ON_IMG_TEST_PATH, PATH_TO_MODEL_WEIGHT, IMAGE_SIZE, CHANNELS, \
-    DEVICE_TYPE, MEMORY_LIMIT, BATCH_SIZE, DEBUG_FOLDER
+    DEVICE_TYPE, MEMORY_LIMIT, T_BATCH_SIZE, DEBUG_FOLDER
 import tensorflow as tf
 
 # for debug:
@@ -62,13 +62,13 @@ def main():
         inf_time += (time() - t0)
         # tf.profiler.experimental.stop()
 
-        for i in range(BATCH_SIZE):
+        for i in range(T_BATCH_SIZE):
             all_predicts += 1
             true_predicts += int(gt_labels[i] == int(scores[i][0] < scores[i][1]))
 
         if VISUALIZATION:
             visual_batch = []
-            for i in range(BATCH_SIZE):
+            for i in range(T_BATCH_SIZE):
                 frame = (images[i] * 255).numpy().astype('uint8')
                 window_manager.draw_annotations(frame, scores[i], gt_labels[i])
                 visual_batch.append(frame)

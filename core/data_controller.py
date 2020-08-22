@@ -1,7 +1,7 @@
 import cv2
 from os.path import normpath, join
 from os import listdir
-from core.constants import BATCH_SIZE, IMAGE_SIZE
+from core.constants import T_BATCH_SIZE, IMAGE_SIZE
 import tensorflow as tf
 
 
@@ -21,7 +21,7 @@ class DataController:
     def get_eval_data_generator(self, shuffle=False):
         if shuffle:
             self.dataset_indexes = self.dataset_indexes.shuffle(len(self.ids))
-        for indexes in self.dataset_indexes.batch(BATCH_SIZE, drop_remainder=True):
+        for indexes in self.dataset_indexes.batch(T_BATCH_SIZE, drop_remainder=True):
             image_sizes_list = []
             images_list = []
             labels_list = []
@@ -48,14 +48,14 @@ class DataController:
 
         """
         # uncomment for debugging data encoder
-        for e in self.dataset_indexes.shuffle(len(self.ids)).batch(BATCH_SIZE, drop_remainder=True):
+        for e in self.dataset_indexes.shuffle(len(self.ids)).batch(T_BATCH_SIZE, drop_remainder=True):
             yield lambda_func(e)
         """
 
         return \
             self.dataset_indexes \
                 .shuffle(len(self.ids)) \
-                .batch(BATCH_SIZE, drop_remainder=True) \
+                .batch(T_BATCH_SIZE, drop_remainder=True) \
                 .map(lambda_func, num_parallel_calls=self.autotune) \
                 .prefetch(self.autotune)
 

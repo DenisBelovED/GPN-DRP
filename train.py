@@ -1,6 +1,6 @@
 from core.constants import OFF_IMG_TEST_PATH, ON_IMG_TEST_PATH, OFF_IMG_TRAIN_PATH, ON_IMG_TRAIN_PATH, CHANNELS, \
     EPOCHS, IMAGE_SIZE, MODEL_WEIGHT_NAME, START_EPOCH, PATH_TO_MODEL_WEIGHT, CHECKPOINT_FOLDER, DEVICE_TYPE, \
-    MEMORY_LIMIT, DEBUG_FOLDER, BATCH_SIZE
+    MEMORY_LIMIT, DEBUG_FOLDER, T_BATCH_SIZE
 
 # for debug:
 # tf.config.experimental_run_functions_eagerly(True) (if need)
@@ -103,7 +103,7 @@ def main():
 
             progress_bar(
                 train_step,
-                train_dataset.count_images // BATCH_SIZE,
+                train_dataset.count_images // T_BATCH_SIZE,
                 'train'
             )
             train_step += 1
@@ -126,7 +126,7 @@ def main():
 
             progress_bar(
                 test_step,
-                test_dataset.count_images // BATCH_SIZE,
+                test_dataset.count_images // T_BATCH_SIZE,
                 'test'
             )
             test_step += 1
