@@ -41,12 +41,13 @@ class Inference:
     def __call__(self):
         for image_sizes, images, gt_labels in self.data_generator:
             scores = tf.nn.softmax(self.net(images)).numpy()
-            frame = (images * 255).numpy().astype('uint8')
+            frame = (images * 255).numpy()[..., ::-1].astype('uint8')
             for i in range(INFER_BATCH_SIZE):
                 label = int(scores[i][0] < scores[i][1])
                 s, color = ('ON', (0, 255, 0)) if label else ('OFF', (0, 0, 255))
                 putText(
-                    frame[i], f"Indicator: {s} {scores[i][label] * 100:.2f}%",
-                    (5, IMAGE_SIZE - 20), FONT_HERSHEY_SIMPLEX, 1, color, 2, LINE_8
+                    frame[i], f"Sensor {i + 1}:     {scores[i][label] * 100:.2f}%",
+                    (5, IMAGE_SIZE - 20), FONT_HERSHEY_SIMPLEX, 1, (0, 225, 255), 2, LINE_8
                 )
+                putText(frame[i], s, (160, IMAGE_SIZE - 20), FONT_HERSHEY_SIMPLEX, 1, color, 2, LINE_8)
             yield concatenate(frame, 1)
