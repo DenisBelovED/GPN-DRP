@@ -1,7 +1,7 @@
 import cv2
 from os.path import normpath, join
 from os import listdir
-from core.constants import T_BATCH_SIZE, IMAGE_SIZE
+from core.constants import INFER_BATCH_SIZE, T_BATCH_SIZE, IMAGE_SIZE
 import tensorflow as tf
 
 
@@ -18,10 +18,11 @@ class DataController:
         self.autotune = tf.data.experimental.AUTOTUNE
         self.count_images = len(self.ids)
 
-    def get_eval_data_generator(self, shuffle=False):
+    def get_eval_data_generator(self, shuffle=False, inference=False):
         if shuffle:
             self.dataset_indexes = self.dataset_indexes.shuffle(len(self.ids))
-        for indexes in self.dataset_indexes.batch(T_BATCH_SIZE, drop_remainder=True):
+        b_s = INFER_BATCH_SIZE if inference else T_BATCH_SIZE
+        for indexes in self.dataset_indexes.batch(b_s, drop_remainder=True):
             image_sizes_list = []
             images_list = []
             labels_list = []

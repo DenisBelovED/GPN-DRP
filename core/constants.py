@@ -9,7 +9,7 @@ DEVICE_TYPE = 'GPU'
 MEMORY_LIMIT = 512
 
 # Размер пакета, размер входной картинки
-INFER_BATCH_SIZE = 1
+INFER_BATCH_SIZE = 4
 T_BATCH_SIZE = 3
 IMAGE_SIZE = 360
 CHANNELS = 3
