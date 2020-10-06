@@ -1,6 +1,6 @@
-from core.constants import OFF_IMG_TEST_PATH, ON_IMG_TEST_PATH, OFF_IMG_TRAIN_PATH, ON_IMG_TRAIN_PATH, CHANNELS, \
-    EPOCHS, IMAGE_SIZE, MODEL_WEIGHT_NAME, START_EPOCH, PATH_TO_MODEL_WEIGHT, CHECKPOINT_FOLDER, DEVICE_TYPE, \
-    MEMORY_LIMIT, DEBUG_FOLDER, T_BATCH_SIZE
+from core.constants import CHANNELS, EPOCHS, IMAGE_SIZE, MODEL_WEIGHT_NAME, START_EPOCH, PATH_TO_MODEL_WEIGHT, \
+    CHECKPOINT_FOLDER, DEVICE_TYPE, MEMORY_LIMIT, DEBUG_FOLDER, T_BATCH_SIZE, PATH_TO_TRAIN_DATA, WHITE_DICT, \
+    PATH_TO_TEST_DATA
 
 # for debug:
 # tf.config.experimental_run_functions_eagerly(True) (if need)
@@ -14,7 +14,9 @@ from core.constants import OFF_IMG_TEST_PATH, ON_IMG_TEST_PATH, OFF_IMG_TRAIN_PA
 import tensorflow as tf
 
 # tf.debugging.set_log_device_placement(True)
-
+gpus = tf.config.list_physical_devices(DEVICE_TYPE)
+tf.config.experimental.set_memory_growth(gpus[0], True)
+"""
 gpus = tf.config.list_physical_devices(DEVICE_TYPE)
 if gpus:
     try:
@@ -26,7 +28,7 @@ if gpus:
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
     except RuntimeError as e:
         print(e)
-
+"""
 print(f"Available GPUs:")
 [print(f"\t{e}") for e in tf.config.list_physical_devices()]
 
@@ -55,18 +57,17 @@ def main():
     tb_writer = tf.summary.create_file_writer(DEBUG_FOLDER)
 
     train_dataset = DataController(
-        ON_IMG_TRAIN_PATH,
-        OFF_IMG_TRAIN_PATH,
+        PATH_TO_TRAIN_DATA,
+        WHITE_DICT,
         transform=TrainAugmentation()
     )
-    train_data_generator = train_dataset.get_reshuffle_data_generator()
 
     test_dataset = DataController(
-        ON_IMG_TEST_PATH,
-        OFF_IMG_TEST_PATH,
-        transform=InferenceAugmentation()
+        PATH_TO_TEST_DATA,
+        WHITE_DICT,
+        transform=InferenceAugmentation(),
+        is_validation_data=True
     )
-    test_data_generator = test_dataset.get_reshuffle_data_generator()
 
     net = ResNet()
     net.build(input_shape=(None, IMAGE_SIZE, IMAGE_SIZE, CHANNELS))
@@ -78,7 +79,7 @@ def main():
     else:
         print("INIT NEW WEIGHTS")
 
-    optimizer = tf.optimizers.Adam(1e-5)
+    optimizer = tf.optimizers.Adam(1e-3)
     ce_loss = CrossEntropyLoss()
 
     history_train_step = 0
@@ -87,7 +88,7 @@ def main():
         epoch_train_loss = 0
         start_epoch_time = time()
         train_step = 1
-        for image_sizes, images, gt_pairs in train_data_generator:
+        for images, gt_pairs in train_dataset.get_reshuffle_data_generator():
             with tf.GradientTape() as tape:
                 logits = net(images)
                 loss = ce_loss(gt_pairs, logits)
@@ -103,7 +104,7 @@ def main():
 
             progress_bar(
                 train_step,
-                train_dataset.count_images // T_BATCH_SIZE,
+                train_dataset.count_images_containing_necessary_classes // T_BATCH_SIZE,
                 'train'
             )
             train_step += 1
@@ -113,8 +114,7 @@ def main():
 
         test_step = 1
         epoch_test_loss = 0
-        tf.profiler.experimental.start(DEBUG_FOLDER)
-        for image_sizes, images, gt_pairs in test_data_generator:
+        for images, gt_pairs in test_dataset.get_reshuffle_data_generator():
             logits = net(images)
             loss = ce_loss(gt_pairs, logits)
             epoch_test_loss += loss
@@ -126,12 +126,11 @@ def main():
 
             progress_bar(
                 test_step,
-                test_dataset.count_images // T_BATCH_SIZE,
+                test_dataset.count_images_containing_necessary_classes // T_BATCH_SIZE,
                 'test'
             )
             test_step += 1
             history_test_step += 1
-        tf.profiler.experimental.stop()
 
         with tb_writer.as_default():
             tf.summary.scalar('Epoch train sum cls loss', epoch_train_loss, epoch)
@@ -140,13 +139,7 @@ def main():
 
         print(f"\nEpoch: {epoch}/{EPOCHS} {(time() - start_epoch_time) / 3600:.2f} h/e")
 
-        net.save_weights(
-            join(
-                CHECKPOINT_FOLDER,
-                f"ResNet-E{epoch}-C{int(epoch_train_loss)}.h5"
-            ),
-            save_format="h5"
-        )
+        net.save(join(CHECKPOINT_FOLDER, f"ResNet-E{epoch}-C{int(epoch_train_loss)}"))
 
     tb_writer.close()
 

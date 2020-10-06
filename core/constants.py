@@ -6,12 +6,12 @@ from shutil import rmtree
 DEVICE_TYPE = 'GPU'
 
 # предел используемой памяти девайса в мегабайтах
-MEMORY_LIMIT = 512
+MEMORY_LIMIT = 3000
 
 # Размер пакета, размер входной картинки
 INFER_BATCH_SIZE = 4
-T_BATCH_SIZE = 3
-IMAGE_SIZE = 360
+T_BATCH_SIZE = 70
+IMAGE_SIZE = 200
 CHANNELS = 3
 EPOCHS = 1000
 
@@ -33,19 +33,39 @@ CHECKPOINT_FOLDER = normpath(join(ROOT_PREFIX, CHECKPOINT_FOLDER_PATH))
 if not exists(CHECKPOINT_FOLDER):
     mkdir(CHECKPOINT_FOLDER)
 
-# Пути до данных
-OFF_VIDEO_PATH = normpath(join(ROOT_PREFIX, r'rosseti/data/indicator/off_video'))
-ON_VIDEO_PATH = normpath(join(ROOT_PREFIX, r'rosseti/data/indicator/on_video'))
-OFF_IMG_TRAIN_PATH = normpath(join(ROOT_PREFIX, r'rosseti/data/indicator/off'))
-ON_IMG_TRAIN_PATH = normpath(join(ROOT_PREFIX, r'rosseti/data/indicator/on'))
-OFF_IMG_TEST_PATH = normpath(join(ROOT_PREFIX, r'rosseti/data/indicator/off_test'))
-ON_IMG_TEST_PATH = normpath(join(ROOT_PREFIX, r'rosseti/data/indicator/on_test'))
+# файлы описания данных
+PATH_TO_TRAIN_DATA = normpath(join(ROOT_PREFIX, r'TF_2.2_SSD/data/prepared_data/train_full_extended_dataset.pickle'))
+PATH_TO_TEST_DATA = normpath(join(ROOT_PREFIX, r'TF_2.2_SSD/data/prepared_data/test_azs_dataset.pickle'))
+PATH_TO_DEBUG_DATA = normpath(join(ROOT_PREFIX, r'TF_2.2_SSD/data/prepared_data/debug_dataset.pickle'))
 
 # имена весов и логика продолжения/инициализации обучения
-MODEL_WEIGHT_NAME = r'ResNet-E29-C126.h5'
+MODEL_WEIGHT_NAME = r''
 PATH_TO_MODEL_WEIGHT = join(ROOT_PREFIX, CHECKPOINT_FOLDER_PATH, MODEL_WEIGHT_NAME)
 START_EPOCH = 1
 if MODEL_WEIGHT_NAME:
     START_EPOCH = int(MODEL_WEIGHT_NAME.split(sep='-')[1][1:]) + 1
 else:
     PATH_TO_MODEL_WEIGHT = None
+
+"""
+WHITE_DICT
+    Этот словарь отвечает за порядок перечисления и количество объектов класса.
+    Если указать при треннировке классы в данном порядке, то для правильного декодирования после инференса
+    порядок изменять нельзя.
+    Количество классов при инференсе должно совпадать с количеством при обучении, а разные имена допустимы.
+    Имена классов должны быть подмножеством множества summary, которое получаем из файла описания датасета.
+    Класс DataController подгрузит файл описания датасета, и выведет summary в консоль.  
+    Числами задаётся первое N объектов класса, которые встретятся в датасете. 
+    Если число = 0 то используются все объекты класса.
+    Если передать в DataController данный словарь с параметром is_validation_data=True,
+    то число объектов будет проигнорированно, и задействуются все объекты.
+"""
+WHITE_DICT = {
+    # 'auto': 60000,
+    # 'fleet': 0,
+    # 'CRT': 0,
+    'person': 16000,
+    'operator': 0,
+    'cashier': 0
+}
+NUM_CLASSES = len(WHITE_DICT)

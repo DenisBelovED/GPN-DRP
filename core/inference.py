@@ -1,5 +1,4 @@
-from core.constants import IMAGE_SIZE, CHANNELS, PATH_TO_MODEL_WEIGHT, DEVICE_TYPE, MEMORY_LIMIT, INFER_BATCH_SIZE, \
-    ON_IMG_TEST_PATH, OFF_IMG_TEST_PATH
+from core.constants import IMAGE_SIZE, CHANNELS, PATH_TO_MODEL_WEIGHT, DEVICE_TYPE, MEMORY_LIMIT, INFER_BATCH_SIZE
 from core.data_controller import DataController
 from cv2 import putText, FONT_HERSHEY_SIMPLEX, LINE_8
 import tensorflow as tf

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from core.constants import T_BATCH_SIZE, INFER_BATCH_SIZE
+from core.constants import T_BATCH_SIZE, INFER_BATCH_SIZE, NUM_CLASSES
 
 
 class ProjectionBlock(tf.keras.layers.Layer):
@@ -31,10 +31,10 @@ class ResNet(tf.keras.Model):
             self.batch_size = INFER_BATCH_SIZE
         super(ResNet, self).__init__()
         # naming rule: self.BlockName_OutSize_Index
-        self.block_360_1 = Block(3)
-        self.block_360_2 = Block(3)
-        self.block_360_3 = Block(3)
-        self.p_block_180_1 = ProjectionBlock(3, 'same', 2, 3, 8)
+        self.p_block_194_1 = ProjectionBlock(7, 'valid', 1, 3, 3)
+        self.p_block_188_1 = ProjectionBlock(7, 'valid', 1, 3, 3)
+        self.p_block_182_1 = ProjectionBlock(7, 'valid', 1, 3, 3)
+        self.p_block_180_1 = ProjectionBlock(3, 'valid', 1, 3, 8)
         self.block_180_1 = Block(8)
         self.block_180_2 = Block(8)
         self.block_180_3 = Block(8)
@@ -62,12 +62,12 @@ class ResNet(tf.keras.Model):
         self.block_3_1 = Block(56)
         self.block_3_2 = Block(56)
         self.block_3_3 = Block(56)
-        self.out = tf.keras.layers.Dense(2)
+        self.out = tf.keras.layers.Dense(NUM_CLASSES)
 
     def call(self, inputs):
-        x = self.block_360_1(inputs)
-        x = self.block_360_2(x)
-        x = self.block_360_3(x)
+        x = self.p_block_194_1(inputs)
+        x = self.p_block_188_1(x)
+        x = self.p_block_182_1(x)
 
         x = self.p_block_180_1(x)
         x = self.block_180_1(x)
