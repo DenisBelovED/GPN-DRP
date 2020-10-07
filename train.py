@@ -143,6 +143,7 @@ def main():
         print(f"\nEpoch: {epoch}/{EPOCHS} {(time() - start_epoch_time) / 3600:.2f} h/e")
 
         net.save(join(CHECKPOINT_FOLDER, f"ResNet-E{epoch}-C{int(epoch_train_loss)}"))
+        net.save_weights(join(CHECKPOINT_FOLDER, f"ResNet-E{epoch}-C{int(epoch_train_loss)}.h5"))
 
     tb_writer.close()
     tb_test_writer.close()

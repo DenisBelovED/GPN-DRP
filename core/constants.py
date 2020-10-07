@@ -40,7 +40,7 @@ PATH_TO_DEBUG_DATA = normpath(join(ROOT_PREFIX, r'TF_2.2_SSD/data/prepared_data/
 
 # имена весов и логика продолжения/инициализации обучения
 MODEL_WEIGHT_NAME = r''
-PATH_TO_MODEL_WEIGHT = join(ROOT_PREFIX, CHECKPOINT_FOLDER_PATH, MODEL_WEIGHT_NAME)
+PATH_TO_MODEL_WEIGHT = normpath(join(ROOT_PREFIX, CHECKPOINT_FOLDER_PATH, MODEL_WEIGHT_NAME))
 START_EPOCH = 1
 if MODEL_WEIGHT_NAME:
     START_EPOCH = int(MODEL_WEIGHT_NAME.split(sep='-')[1][1:]) + 1
