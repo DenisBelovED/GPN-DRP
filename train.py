@@ -37,7 +37,7 @@ from core.augmentation_transforms import TrainAugmentation, InferenceAugmentatio
 from core.data_controller import DataController
 from core.resnet import ResNet
 from core.loss import CrossEntropyLoss
-from os.path import join
+from os.path import join, normpath
 import sys
 
 
@@ -54,7 +54,8 @@ def progress_bar(count, total, status):
 
 def main():
     # tf.random.set_seed(1337)
-    tb_writer = tf.summary.create_file_writer(DEBUG_FOLDER)
+    tb_writer = tf.summary.create_file_writer(normpath(join(DEBUG_FOLDER, 'train')))
+    tb_test_writer = tf.summary.create_file_writer(normpath(join(DEBUG_FOLDER, 'test')))
 
     train_dataset = DataController(
         PATH_TO_TRAIN_DATA,
@@ -99,12 +100,12 @@ def main():
 
             with tb_writer.as_default():
                 # tf.summary.image('Images', images, history_train_step)
-                tf.summary.scalar('Train step loss', loss, history_train_step)
+                tf.summary.scalar('Step loss', loss, history_train_step)
                 tb_writer.flush()
 
             progress_bar(
                 train_step,
-                train_dataset.count_images_containing_necessary_classes // T_BATCH_SIZE,
+                train_dataset.summary_object_count // T_BATCH_SIZE,
                 'train'
             )
             train_step += 1
@@ -119,29 +120,32 @@ def main():
             loss = ce_loss(gt_pairs, logits)
             epoch_test_loss += loss
 
-            with tb_writer.as_default():
+            with tb_test_writer.as_default():
                 # tf.summary.image('Images', images, history_test_step)
-                tf.summary.scalar('Test step loss', loss, history_test_step)
-                tb_writer.flush()
+                tf.summary.scalar('Step loss', loss, history_test_step)
+                tb_test_writer.flush()
 
             progress_bar(
                 test_step,
-                test_dataset.count_images_containing_necessary_classes // T_BATCH_SIZE,
+                test_dataset.summary_object_count // T_BATCH_SIZE,
                 'test'
             )
             test_step += 1
             history_test_step += 1
 
         with tb_writer.as_default():
-            tf.summary.scalar('Epoch train sum cls loss', epoch_train_loss, epoch)
-            tf.summary.scalar('Epoch test sum cls loss', epoch_test_loss, epoch)
+            tf.summary.scalar('Epoch sum cls loss', epoch_train_loss, epoch)
             tb_writer.flush()
+        with tb_test_writer.as_default():
+            tf.summary.scalar('Epoch sum cls loss', epoch_test_loss, epoch)
+            tb_test_writer.flush()
 
         print(f"\nEpoch: {epoch}/{EPOCHS} {(time() - start_epoch_time) / 3600:.2f} h/e")
 
         net.save(join(CHECKPOINT_FOLDER, f"ResNet-E{epoch}-C{int(epoch_train_loss)}"))
 
     tb_writer.close()
+    tb_test_writer.close()
 
 
 if __name__ == '__main__':
