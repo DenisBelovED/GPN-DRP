@@ -10,7 +10,7 @@ MEMORY_LIMIT = 3000
 
 # Размер пакета, размер входной картинки
 INFER_BATCH_SIZE = 4
-T_BATCH_SIZE = 70
+T_BATCH_SIZE = 65
 IMAGE_SIZE = 200
 CHANNELS = 3
 EPOCHS = 1000
