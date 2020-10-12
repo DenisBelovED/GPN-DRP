@@ -14,17 +14,18 @@ class VisualManager:
     @staticmethod
     def draw_annotations(
             frame,
-            probability,
-            label,
+            pred_label,
+            gt_label,
+            label_map,
             predict_color=(0, 255, 0),
             true_color=(0, 0, 255)
     ):
-        index = int(probability[0] < probability[1])
         cv2.putText(
-            frame, f"TRUE: {'ON' if label else 'OFF'}",
-            (10, IMAGE_SIZE - 50), cv2.FONT_HERSHEY_SIMPLEX, 1, true_color, 2, cv2.LINE_8
+            frame, f"TRUE: {label_map[gt_label]}",
+            (10, IMAGE_SIZE - 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, true_color, 1, cv2.LINE_8
         )
         cv2.putText(
-            frame, f"PREDICT: {'ON' if index else 'OFF'} {probability[index] * 100:.2f}%",
-            (10, IMAGE_SIZE - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, predict_color, 2, cv2.LINE_8
+            frame, f"PREDICT: {label_map[pred_label]}",
+            (10, IMAGE_SIZE - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+            predict_color if pred_label == gt_label else (255, 0, 0), 1, cv2.LINE_8
         )

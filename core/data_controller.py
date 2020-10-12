@@ -15,8 +15,8 @@ def buffer(get_generator):
         for images, labels in obj:
             yield tf.unstack(images), tf.unstack(labels)
 
-    def wrapper(self):
-        iterator = iterable(get_generator(self))
+    def wrapper(self, shuffle=False):
+        iterator = iterable(get_generator(self, shuffle)) if shuffle else iterable(get_generator(self))
         img_buffer = []
         lbl_buffer = []
         while True:

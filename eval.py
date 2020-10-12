@@ -1,5 +1,5 @@
-from core.constants import OFF_IMG_TEST_PATH, ON_IMG_TEST_PATH, PATH_TO_MODEL_WEIGHT, IMAGE_SIZE, CHANNELS, \
-    DEVICE_TYPE, MEMORY_LIMIT, T_BATCH_SIZE, DEBUG_FOLDER
+from core.constants import PATH_TO_MODEL_WEIGHT, IMAGE_SIZE, CHANNELS, DEVICE_TYPE, MEMORY_LIMIT, INFER_BATCH_SIZE, \
+    WHITE_DICT, PATH_TO_TEST_DATA
 import tensorflow as tf
 
 # for debug:
@@ -40,13 +40,15 @@ def main():
         window_manager = VisualManager('eval')
 
     dataset = DataController(
-        ON_IMG_TEST_PATH,
-        OFF_IMG_TEST_PATH,
-        transform=InferenceAugmentation()
+        PATH_TO_TEST_DATA,
+        WHITE_DICT,
+        transform=InferenceAugmentation(),
+        is_validation_data=True,
+        inference_mode=True
     )
     data_generator = dataset.get_eval_data_generator(shuffle=True)
 
-    net = ResNet()
+    net = ResNet(inference_mode=True)
     net.build(input_shape=(None, IMAGE_SIZE, IMAGE_SIZE, CHANNELS))
     net.load_weights(PATH_TO_MODEL_WEIGHT)
     net.summary()
@@ -55,22 +57,20 @@ def main():
     all_predicts = 0
     inf_time = 0
 
-    for image_sizes, images, gt_labels in data_generator:
-        # tf.profiler.experimental.start(DEBUG_FOLDER)
+    for images, gt_labels in data_generator:
+        gt_labels = gt_labels.numpy()
         t0 = time()
-        scores = tf.nn.softmax(net(images)).numpy()
+        pred_labels = tf.nn.softmax(net(images)).numpy().argmax(axis=1).astype('int32')
         inf_time += (time() - t0)
-        # tf.profiler.experimental.stop()
 
-        for i in range(T_BATCH_SIZE):
-            all_predicts += 1
-            true_predicts += int(gt_labels[i] == int(scores[i][0] < scores[i][1]))
+        all_predicts += INFER_BATCH_SIZE
+        true_predicts += (gt_labels == pred_labels).sum()
 
         if VISUALIZATION:
             visual_batch = []
-            for i in range(T_BATCH_SIZE):
+            for i in range(INFER_BATCH_SIZE):
                 frame = (images[i] * 255).numpy().astype('uint8')
-                window_manager.draw_annotations(frame, scores[i], gt_labels[i])
+                window_manager.draw_annotations(frame, pred_labels[i], gt_labels[i], dataset.invert_class_dict)
                 visual_batch.append(frame)
             window_manager.desktop_show(concatenate(visual_batch, axis=1), 0)
 
