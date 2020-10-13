@@ -31,8 +31,9 @@ from core.augmentation_transforms import InferenceAugmentation
 from core.resnet import ResNet
 from numpy import concatenate
 from time import time
+from core.yield_measure import YieldMeasure
 
-VISUALIZATION = True
+VISUALIZATION = False
 
 
 def main():
@@ -46,6 +47,7 @@ def main():
         is_validation_data=True,
         inference_mode=True
     )
+    measure = YieldMeasure(dataset.summary)
     data_generator = dataset.get_eval_data_generator(shuffle=True)
 
     net = ResNet(inference_mode=True)
@@ -53,18 +55,17 @@ def main():
     net.load_weights(PATH_TO_MODEL_WEIGHT)
     net.summary()
 
-    true_predicts = 0
-    all_predicts = 0
     inf_time = 0
+    inf_num = 0
 
     for images, gt_labels in data_generator:
         gt_labels = gt_labels.numpy()
         t0 = time()
         pred_labels = tf.nn.softmax(net(images)).numpy().argmax(axis=1).astype('int32')
         inf_time += (time() - t0)
+        inf_num += 1
 
-        all_predicts += INFER_BATCH_SIZE
-        true_predicts += (gt_labels == pred_labels).sum()
+        measure.append(gt_labels, pred_labels)
 
         if VISUALIZATION:
             visual_batch = []
@@ -73,11 +74,8 @@ def main():
                 window_manager.draw_annotations(frame, pred_labels[i], gt_labels[i], dataset.invert_class_dict)
                 visual_batch.append(frame)
             window_manager.desktop_show(concatenate(visual_batch, axis=1), 0)
-
-    print(
-        f"Accuracy = {(true_predicts / all_predicts) * 100:.2f}% {true_predicts}/{all_predicts}\n"
-        f"Median inference time: {(inf_time / all_predicts) * 1000:.1f} ms"
-    )
+    measure.show_rating()
+    print(f"Median inference time: {(inf_time / inf_num) * 1000:.1f} ms")
 
 
 if __name__ == '__main__':
