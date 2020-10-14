@@ -9,7 +9,7 @@ DEVICE_TYPE = 'GPU'
 MEMORY_LIMIT = 1000
 
 # Размер пакета, размер входной картинки
-INFER_BATCH_SIZE = 4
+INFER_BATCH_SIZE = 10
 T_BATCH_SIZE = 65
 IMAGE_SIZE = 200
 CHANNELS = 3
@@ -17,10 +17,10 @@ EPOCHS = 1000
 
 # устанавливаем префикс до папки проекта
 ROOT_PREFIX = getcwd()
-ROOT_PREFIX = ROOT_PREFIX[:ROOT_PREFIX.index(r'rosseti')]
+ROOT_PREFIX = ROOT_PREFIX[:ROOT_PREFIX.index(r'people_classifier')]
 
 # Лог для отладки в tensorboard
-DEBUG_FOLDER = normpath(join(ROOT_PREFIX, r'rosseti/src/debug/'))
+DEBUG_FOLDER = normpath(join(ROOT_PREFIX, r'people_classifier/src/debug/'))
 if not exists(DEBUG_FOLDER):
     mkdir(DEBUG_FOLDER)
 else:
@@ -28,7 +28,7 @@ else:
     mkdir(DEBUG_FOLDER)
 
 # путь до папки, где сохраняются/читаются веса
-CHECKPOINT_FOLDER_PATH = r'rosseti/src/models/'
+CHECKPOINT_FOLDER_PATH = r'people_classifier/src/models/'
 CHECKPOINT_FOLDER = normpath(join(ROOT_PREFIX, CHECKPOINT_FOLDER_PATH))
 if not exists(CHECKPOINT_FOLDER):
     mkdir(CHECKPOINT_FOLDER)
